@@ -8,26 +8,13 @@ from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping
-from google.colab import drive
 
-# --- Mount Google Drive ---
-drive.mount('/content/drive')
-
-# --- Set base directory (modify if needed) ---
+# --- Change this to your dataset folder path ---
+# Example: "datasets/Fruits" or "C:/Users/YourName/Documents/Fruits"
 base_dir = "/content/drive/MyDrive/Emtech2/Fruits"
-
-# --- Safety Check: Does folder exist? ---
+# --- Safety Check ---
 if not os.path.exists(base_dir):
-    print("❌ Dataset folder not found!")
-    print("➡ Please make sure this path exists in your Google Drive:")
-    print(base_dir)
-    print("\n📂 The folder structure should look like this:")
-    print("Fruits/")
-    print("├── Apple/")
-    print("├── Banana/")
-    print("├── Mango/")
-    print("└── ...")
-    raise SystemExit("⚠️ Stopping: Dataset path not found.")
+    raise FileNotFoundError(f"❌ Dataset folder not found at: {base_dir}")
 
 # --- Image Parameters ---
 img_height, img_width = 150, 150
@@ -43,10 +30,10 @@ datagen = ImageDataGenerator(
     zoom_range=0.1,
     horizontal_flip=True,
     fill_mode='nearest',
-    validation_split=0.2  # 20% validation
+    validation_split=0.2
 )
 
-# --- Load Training and Validation Data ---
+# --- Data Loaders ---
 train_generator = datagen.flow_from_directory(
     base_dir,
     target_size=(img_height, img_width),
@@ -63,13 +50,11 @@ val_generator = datagen.flow_from_directory(
     subset='validation'
 )
 
-# --- Build Transfer Learning Model ---
+# --- Model Definition ---
 def create_transfer_model(num_classes):
-    base_model = MobileNetV2(
-        input_shape=(img_height, img_width, 3),
-        include_top=False,
-        weights='imagenet'
-    )
+    base_model = MobileNetV2(input_shape=(img_height, img_width, 3),
+                              include_top=False,
+                              weights='imagenet')
     base_model.trainable = False
 
     x = base_model.output
@@ -84,9 +69,8 @@ def create_transfer_model(num_classes):
                   metrics=['accuracy'])
     return model
 
-# --- Model Training ---
+# --- Train Model ---
 model = create_transfer_model(num_classes=train_generator.num_classes)
-
 early_stop = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
 history = model.fit(
@@ -96,7 +80,7 @@ history = model.fit(
     callbacks=[early_stop]
 )
 
-# --- Plot Training History ---
+# --- Plot Accuracy ---
 plt.plot(history.history['accuracy'], label='Train Accuracy')
 plt.plot(history.history['val_accuracy'], label='Val Accuracy')
 plt.xlabel('Epochs')
@@ -106,6 +90,6 @@ plt.title("Training and Validation Accuracy")
 plt.show()
 
 # --- Save Model ---
-model_save_path = '/content/drive/MyDrive/Emtech2/fruits_model.h5'
-model.save(model_save_path, save_format='h5')
-print(f"✅ Model saved at: {model_save_path}")
+model.save("fruits_model.h5", save_format="h5")
+print("✅ Model saved as fruits_model.h5")
+
