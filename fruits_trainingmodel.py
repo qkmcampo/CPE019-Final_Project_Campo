@@ -12,7 +12,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
 # ✅ Set dataset directory (must follow folder-per-class structure)
-base_dir = "/mount/src/cpe019-final_project_campo/fruits_dataset"  # Adjust path as needed
+base_dir = '/content/drive/MyDrive/Emtech2/Fruits'   # Adjust path as needed
 
 # Image preprocessing settings
 img_height, img_width = 150, 150
