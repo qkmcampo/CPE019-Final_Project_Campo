@@ -100,4 +100,4 @@ if uploaded_file is not None:
     if predicted_class in fruit_facts:
         st.info(fruit_facts[predicted_class])
 else:
-    st.info("🖼️ Please upload a fruit image to start.")
+    st.info("🖼️ Please upload a fruit image to start.") 
