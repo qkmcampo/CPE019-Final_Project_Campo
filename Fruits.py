@@ -1,0 +1,64 @@
+import streamlit as st
+import tensorflow as tf
+import numpy as np
+from PIL import Image, ImageOps
+
+# Set Streamlit page config
+st.set_page_config(page_title="🍓 Fruit Classifier", layout="centered")
+
+# Load the model
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model("fruits_model.keras")
+
+model = load_model()
+
+# Updated class names (must match your training class folder names)
+class_names = [
+    'Apple', 'Banana', 'Cherry', 'Chicko',
+    'Grapes', 'Kiwi', 'Mango', 'Orange', 'Strawberry'
+]
+
+st.title("🍌 Fruit Image Classifier")
+st.write("Upload an image of a fruit and let the model classify it.")
+
+file = st.file_uploader("📸 Upload a fruit image", type=["jpg", "jpeg", "png"])
+
+def import_and_predict(image_data, model):
+    size = model.input_shape[1:3]  # Get input shape from model
+    image = ImageOps.fit(image_data, size, Image.LANCZOS)
+    img_array = np.asarray(image).astype('float32') / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    prediction = model.predict(img_array)
+    return prediction
+
+if file is None:
+    st.info("🖼️ Please upload a fruit image to get a prediction.")
+else:
+    image = Image.open(file).convert('RGB')
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+
+    with st.spinner("🔍 Classifying..."):
+        prediction = import_and_predict(image, model)
+
+    predicted_index = int(np.argmax(prediction))
+    predicted_class = class_names[predicted_index]
+    confidence = round(100 * np.max(prediction), 2)
+
+    st.markdown(f"### ✅ Predicted Fruit: **{predicted_class}**")
+    st.markdown(f"### 🔢 Confidence: **{confidence:.2f}%**")
+
+    fruit_facts = {
+        "Apple": "🍎 An apple a day keeps the doctor away.",
+        "Banana": "🍌 Rich in potassium and great for energy.",
+        "Cherry": "🍒 Packed with antioxidants and anti-inflammatory compounds.",
+        "Chicko": "🥝 Chicko (sapodilla) is sweet and high in fiber.",
+        "Grapes": "🍇 Full of vitamins and hydration.",
+        "Kiwi": "🥝 High in vitamin C and supports immunity.",
+        "Mango": "🥭 The king of fruits and rich in vitamin A.",
+        "Orange": "🍊 Loaded with vitamin C for your immune system.",
+        "Strawberry": "🍓 Sweet, tangy, and heart-healthy!"
+    }
+
+    if predicted_class in fruit_facts:
+        st.info(fruit_facts[predicted_class])
